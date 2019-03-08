@@ -1,5 +1,7 @@
 #include <iostream>
-//#include "vld.h"
+#include "vld.h"
+#include <vector>
+#include <memory>
 
 #include "linked_list/LinkedList.h"
 
@@ -18,6 +20,8 @@ private:
 };
 
 int main(void) {
+
+	
 	LinkedList<Foo> fooLst;
 	Foo f1 = Foo(4);
 	Foo f2 = Foo(9);
@@ -26,11 +30,17 @@ int main(void) {
 	fooLst.add(f3);
 	fooLst.add(f2);
 
-	for (auto it = fooLst.begin(); it != fooLst.end(); it++)
+	for (auto it = fooLst.begin(); it.hasNext(); it++)
 	{
-		std::cout << (*it).getFoo() << std::endl;
+		std::cout << it->getFoo() << std::endl;
 	}
 
+	std::cout << "Size After: " << fooLst.length() << std::endl;
+
+	for (auto it = fooLst.begin(); it.hasNext(); it++)
+	{
+		std::cout << it->getFoo() << std::endl;
+	}
 
 	return 0;
 }

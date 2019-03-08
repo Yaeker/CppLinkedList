@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
-#include <memory>
+#include <functional>
+
 
 #include "Node.h"
 #include "Iterator.h"
@@ -14,13 +14,9 @@ public:
 	virtual ~LinkedList()
 	{
 		this->clear();
-		if (itFirst) 
+		if (it) 
 		{
-			delete itFirst;
-		}
-		if (itLast) 
-		{
-			delete itLast;
+			delete it;
 		}
 	}
 
@@ -30,31 +26,27 @@ public:
 	T* getLast() const;
 	T* getFirst() const;
 	bool remove(T& o);
+	bool removeIf(bool(*predicate)(T));
+
 	const Iterator<T>& begin()
 	{ 
-		this->itLast = new Iterator<T>(this->last->next);
-		this->itFirst = new Iterator<T>(this->first);
-		return *(this->itFirst);
-	}
-	const Iterator<T>& end() 
-	{
-		if (!itLast) 
-		{
-			this->itLast = new Iterator<T>(this->last->next);
+		if (this->it) {
+			it->reset(this->first);
 		}
-		return *(this->itLast); 
+		else
+		{
+			this->it = new Iterator<T>(this->first, this->size);
+		}
+		return *(this->it);
 	}
 
 private:
-	friend Iterator<T>;
 	void add(T* o);
 	bool remove(T* o);
-	bool remove(Node<T>* node);
 	unsigned int size = 0;
 	Node<T>* first = nullptr;
 	Node<T>* last = nullptr;
-	Iterator<T>* itFirst = nullptr;
-	Iterator<T>* itLast = nullptr;
+	Iterator<T>* it = nullptr;
 };
 
 template<typename T>
@@ -78,8 +70,7 @@ inline void LinkedList<T>::add(T* o)
 template<typename T>
 inline void LinkedList<T>::add(T& o)
 {
-	T* oPtr= new T(o);
-	this->add(oPtr);
+	this->add(&o);
 }
 
 template<typename T>
@@ -91,19 +82,10 @@ inline size_t LinkedList<T>::length() const
 template<typename T>
 inline void LinkedList<T>::clear()
 {
-	if (this->size > 0)
+	for (auto it = this->begin(); it.hasNext(); it++)
 	{
-		Node<T>* current = first;
-		Node<T>* previous = nullptr;
-
-		while (current)
-		{
-			previous = current;
-			current = current->next;
-			delete previous;
-		}
+		it.remove();
 	}
-	this->size = 0;
 }
 
 template<typename T>
@@ -113,7 +95,7 @@ inline T* LinkedList<T>::getLast() const
 }
 
 template<typename T>
-inline T * LinkedList<T>::getFirst() const
+inline T* LinkedList<T>::getFirst() const
 {
 	return first->obj;
 }
@@ -121,36 +103,11 @@ inline T * LinkedList<T>::getFirst() const
 template<typename T>
 inline bool LinkedList<T>::remove(T* o)
 {
-	if (this->size > 0)
+	for (auto it = this->begin(); it.hasNext(); it++)
 	{
-		Node<T>* current = this->first;
-		Node<T>* previous = nullptr;
-
-		while (current)
-		{
-			if (current == this->first && current->obj == o) {
-
-				this->first = current->next;
-				this->first->prev = nullptr;
-				delete current;
-				this->size--;
-				return true;
-			}
-			else
-			{
-				previous = current;
-				current = current->next;
-				if (current->obj == o) {
-					previous->next = current->next;
-					current->next->prev = previous->next;
-					if (!previous->next) {
-						this->last = previous;
-					}
-					delete current;
-					this->size--;
-					return true;
-				}
-			}
+		if (o == *it) {
+			it.remove();
+			return true;
 		}
 	}
 	return false;
@@ -160,4 +117,15 @@ template<typename T>
 inline bool LinkedList<T>::remove(T& o)
 {
 	return this->remove(&o);
+}
+
+template<typename T>
+inline bool LinkedList<T>::removeIf(bool(*predicate)(T))
+{
+	for (auto it = this->begin(); it.hasNext(); it++)
+	{
+		if (predicate(*it)) {
+			it.remove();
+		}
+	}
 }

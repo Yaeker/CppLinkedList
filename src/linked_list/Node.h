@@ -5,7 +5,7 @@ class Node
 {
 public:
 	Node(T* o) : obj(o) {}
-	virtual ~Node() { delete obj; }
+	virtual ~Node() { }
 	Node* next = nullptr;
 	Node* prev = nullptr;
 	T* obj = nullptr;
